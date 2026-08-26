@@ -472,7 +472,7 @@ This project provided hands-on experience in developing an embedded system from 
 
 👩‍💻 Author
 
-Sathyapriya
+Sathyapriya S
 
 Electronics and Communication Engineering (ECE)
 
