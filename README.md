@@ -335,8 +335,6 @@ Critical Condition
 
 "Critical Condition" (images/05_critical_led.jpeg)
 
-«If your actual image filenames are different, replace the filenames above with the exact names in your "images" folder.»
-
 ---
 
 🎥 Working Prototype Video
