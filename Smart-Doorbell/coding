@@ -1,0 +1,438 @@
+#include <WiFi.h>
+#include <WebServer.h>
+#include <Wire.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
+
+// =====================================================
+// WI-FI CONFIGURATION
+// =====================================================
+
+const char* ssid = "YOUR_WIFI_NAME";
+const char* password = "YOUR_WIFI_PASSWORD";
+
+// =====================================================
+// PIN CONFIGURATION
+// =====================================================
+
+#define BUTTON_PIN 23
+#define LED_PIN 25
+#define BUZZER_PIN 18
+
+#define OLED_SDA 21
+#define OLED_SCL 22
+
+// =====================================================
+// OLED CONFIGURATION
+// =====================================================
+
+#define SCREEN_WIDTH 128
+#define SCREEN_HEIGHT 64
+
+Adafruit_SSD1306 display(
+  SCREEN_WIDTH,
+  SCREEN_HEIGHT,
+  &Wire,
+  -1
+);
+
+// =====================================================
+// WEB SERVER
+// =====================================================
+
+WebServer server(80);
+
+// =====================================================
+// OLED UPDATE
+// =====================================================
+
+void updateOLED(bool pressed) {
+
+  display.clearDisplay();
+
+  display.setTextColor(SSD1306_WHITE);
+
+  if (pressed) {
+
+    display.setTextSize(1);
+
+    display.setCursor(18, 5);
+    display.println("SMART DOORBELL");
+
+    display.setTextSize(2);
+
+    display.setCursor(10, 25);
+    display.println("DING!");
+
+    display.setTextSize(1);
+
+    display.setCursor(12, 50);
+    display.println("Someone is here");
+
+  } else {
+
+    display.setTextSize(1);
+
+    display.setCursor(18, 5);
+    display.println("SMART DOORBELL");
+
+    display.setTextSize(2);
+
+    display.setCursor(20, 27);
+    display.println("READY");
+
+    display.setTextSize(1);
+
+    display.setCursor(22, 50);
+    display.println("Press button");
+  }
+
+  display.display();
+}
+
+// =====================================================
+// WEBPAGE
+// =====================================================
+
+void handleRoot() {
+
+  bool pressed = (digitalRead(BUTTON_PIN) == LOW);
+
+  String page = "<!DOCTYPE html>";
+
+  page += "<html>";
+  page += "<head>";
+
+  page += "<meta name='viewport' content='width=device-width, initial-scale=1'>";
+  page += "<meta http-equiv='refresh' content='1'>";
+
+  page += "<title>Smart Doorbell</title>";
+
+  page += "<style>";
+
+  page += "* { box-sizing: border-box; }";
+
+  page += "body {";
+  page += "margin: 0;";
+  page += "font-family: Arial, sans-serif;";
+  page += "background: #eef2f7;";
+  page += "color: #222;";
+  page += "text-align: center;";
+  page += "}";
+
+  page += ".header {";
+  page += "background: #1f2937;";
+  page += "color: white;";
+  page += "padding: 25px 15px;";
+  page += "}";
+
+  page += ".header h1 {";
+  page += "margin: 0;";
+  page += "font-size: 32px;";
+  page += "}";
+
+  page += ".header p {";
+  page += "margin: 8px 0 0;";
+  page += "font-size: 15px;";
+  page += "opacity: 0.8;";
+  page += "}";
+
+  page += ".container {";
+  page += "max-width: 600px;";
+  page += "margin: 30px auto;";
+  page += "padding: 0 20px;";
+  page += "}";
+
+  page += ".card {";
+  page += "background: white;";
+  page += "border-radius: 18px;";
+  page += "padding: 30px 20px;";
+  page += "box-shadow: 0 5px 20px rgba(0,0,0,0.10);";
+  page += "margin-bottom: 20px;";
+  page += "}";
+
+  page += ".online {";
+  page += "display: inline-block;";
+  page += "padding: 8px 18px;";
+  page += "border-radius: 20px;";
+  page += "background: #d1fae5;";
+  page += "color: #065f46;";
+  page += "font-weight: bold;";
+  page += "font-size: 14px;";
+  page += "}";
+
+  page += ".status {";
+  page += "margin-top: 25px;";
+  page += "padding: 25px 15px;";
+  page += "border-radius: 15px;";
+  page += "}";
+
+  if (pressed) {
+
+    page += ".status {";
+    page += "background: #fee2e2;";
+    page += "color: #991b1b;";
+    page += "}";
+
+  } else {
+
+    page += ".status {";
+    page += "background: #ecfdf5;";
+    page += "color: #065f46;";
+    page += "}";
+  }
+
+  page += ".status h2 {";
+  page += "margin: 0;";
+  page += "font-size: 28px;";
+  page += "}";
+
+  page += ".status p {";
+  page += "margin-bottom: 0;";
+  page += "font-size: 16px;";
+  page += "}";
+
+  page += ".info {";
+  page += "display: grid;";
+  page += "grid-template-columns: 1fr 1fr;";
+  page += "gap: 15px;";
+  page += "}";
+
+  page += ".info-box {";
+  page += "background: #f8fafc;";
+  page += "padding: 18px;";
+  page += "border-radius: 12px;";
+  page += "}";
+
+  page += ".info-box strong {";
+  page += "display: block;";
+  page += "font-size: 13px;";
+  page += "color: #64748b;";
+  page += "margin-bottom: 7px;";
+  page += "}";
+
+  page += ".footer {";
+  page += "color: #64748b;";
+  page += "font-size: 13px;";
+  page += "margin-top: 25px;";
+  page += "}";
+
+  page += "@media (max-width: 500px) {";
+
+  page += ".header h1 {";
+  page += "font-size: 26px;";
+  page += "}";
+
+  page += ".status h2 {";
+  page += "font-size: 23px;";
+  page += "}";
+
+  page += ".info {";
+  page += "grid-template-columns: 1fr;";
+  page += "}";
+
+  page += "}";
+
+  page += "</style>";
+
+  page += "</head>";
+
+  page += "<body>";
+
+  page += "<div class='header'>";
+
+  page += "<h1>SMART DOORBELL</h1>";
+
+  page += "<p>ESP32 Wi-Fi Doorbell System</p>";
+
+  page += "</div>";
+
+  page += "<div class='container'>";
+
+  page += "<div class='card'>";
+
+  page += "<span class='online'>ESP32 ONLINE</span>";
+
+  page += "<div class='status'>";
+
+  if (pressed) {
+
+    page += "<h2>SOMEONE IS AT THE DOOR</h2>";
+    page += "<p>Doorbell button is being pressed.</p>";
+
+  } else {
+
+    page += "<h2>DOORBELL READY</h2>";
+    page += "<p>Waiting for someone to press the doorbell.</p>";
+  }
+
+  page += "</div>";
+
+  page += "</div>";
+
+  page += "<div class='card'>";
+
+  page += "<div class='info'>";
+
+  page += "<div class='info-box'>";
+  page += "<strong>DEVICE</strong>";
+  page += "ESP32";
+  page += "</div>";
+
+  page += "<div class='info-box'>";
+  page += "<strong>CONNECTION</strong>";
+  page += "Wi-Fi";
+  page += "</div>";
+
+  page += "<div class='info-box'>";
+  page += "<strong>BLUE LED</strong>";
+
+  if (pressed) {
+    page += "ON";
+  } else {
+    page += "OFF";
+  }
+
+  page += "</div>";
+
+  page += "<div class='info-box'>";
+  page += "<strong>BUZZER</strong>";
+
+  if (pressed) {
+    page += "ACTIVE";
+  } else {
+    page += "OFF";
+  }
+
+  page += "</div>";
+
+  page += "</div>";
+
+  page += "</div>";
+
+  page += "<div class='footer'>";
+
+  page += "Smart Doorbell Project | ESP32";
+
+  page += "</div>";
+
+  page += "</div>";
+
+  page += "</body>";
+
+  page += "</html>";
+
+  server.send(200, "text/html", page);
+}
+
+// =====================================================
+// SETUP
+// =====================================================
+
+void setup() {
+
+  Serial.begin(115200);
+
+  // Button
+
+  pinMode(BUTTON_PIN, INPUT_PULLUP);
+
+  // LED
+
+  pinMode(LED_PIN, OUTPUT);
+
+  // Buzzer
+
+  pinMode(BUZZER_PIN, OUTPUT);
+
+  digitalWrite(LED_PIN, LOW);
+
+  noTone(BUZZER_PIN);
+
+  // =================================================
+  // OLED
+  // =================================================
+
+  Wire.begin(OLED_SDA, OLED_SCL);
+
+  if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
+
+    Serial.println("OLED ERROR");
+
+    while (true) {
+
+      digitalWrite(LED_PIN, HIGH);
+
+      delay(300);
+
+      digitalWrite(LED_PIN, LOW);
+
+      delay(300);
+    }
+  }
+
+  updateOLED(false);
+
+  // =================================================
+  // WI-FI
+  // =================================================
+
+  WiFi.mode(WIFI_STA);
+
+  WiFi.begin(ssid, password);
+
+  Serial.print("Connecting to Wi-Fi");
+
+  while (WiFi.status() != WL_CONNECTED) {
+
+    delay(500);
+
+    Serial.print(".");
+  }
+
+  Serial.println();
+
+  Serial.println("Wi-Fi connected!");
+
+  Serial.print("IP address: ");
+
+  Serial.println(WiFi.localIP());
+
+  // =================================================
+  // WEB SERVER
+  // =================================================
+
+  server.on("/", handleRoot);
+
+  server.begin();
+
+  Serial.println("Web server started!");
+}
+
+// =====================================================
+// MAIN LOOP
+// =====================================================
+
+void loop() {
+
+  server.handleClient();
+
+  bool pressed = (digitalRead(BUTTON_PIN) == LOW);
+
+  if (pressed) {
+
+    digitalWrite(LED_PIN, HIGH);
+
+    tone(BUZZER_PIN, 2000);
+
+    updateOLED(true);
+
+  } else {
+
+    digitalWrite(LED_PIN, LOW);
+
+    noTone(BUZZER_PIN);
+
+    updateOLED(false);
+  }
+}
